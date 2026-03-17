@@ -1,0 +1,8 @@
+# Copy this file to spots/your-spot-name.yaml and fill in the details.
+# The filename should be lowercase with hyphens (e.g., gorges-du-verdon.yaml).
+
+name: Your Spot Name
+lat: 0.0       # WGS84 latitude (e.g., 43.82694)
+lon: 0.0       # WGS84 longitude (e.g., 5.36088)
+climbing_type: sport  # Comma-separated: sport, boulder, trad, multi-pitch
+# photo_url:   # Optional — leave commented out if none

@@ -1,0 +1,37 @@
+name: Validate Spot PR
+
+on:
+  pull_request:
+    paths:
+      - "spots/**/*.yaml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema
+
+      - name: Get changed files
+        id: changed
+        run: |
+          FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep '^spots/.*\.yaml$' || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Validate spot files
+        if: steps.changed.outputs.files != ''
+        run: python scripts/validate.py ${{ steps.changed.outputs.files }}
+
+      - name: Check for duplicates
+        if: steps.changed.outputs.files != ''
+        run: python scripts/check_duplicates.py ${{ steps.changed.outputs.files }}

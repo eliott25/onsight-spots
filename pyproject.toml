@@ -1,0 +1,15 @@
+[project]
+name = "onsight-spots"
+version = "1.0.0"
+description = "Community-contributed climbing spots for OnSight"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml>=6.0",
+    "jsonschema>=4.20",
+    "psycopg2-binary>=2.9",
+]
+
+[project.scripts]
+validate = "scripts.validate:main"
+check-duplicates = "scripts.check_duplicates:main"
+insert = "scripts.insert:main"

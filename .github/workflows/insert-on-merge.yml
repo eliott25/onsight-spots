@@ -1,0 +1,41 @@
+name: Insert Spots on Merge
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "spots/**/*.yaml"
+
+jobs:
+  insert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml jsonschema psycopg2-binary
+
+      - name: Get changed spot files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD -- 'spots/*.yaml' || true)
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Validate before insert
+        if: steps.changed.outputs.files != ''
+        run: python scripts/validate.py ${{ steps.changed.outputs.files }}
+
+      - name: Insert into database
+        if: steps.changed.outputs.files != ''
+        run: python scripts/insert.py ${{ steps.changed.outputs.files }}
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
