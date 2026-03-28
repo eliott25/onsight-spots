@@ -12,6 +12,12 @@
       "maxLength": 100,
       "description": "Name of the climbing spot"
     },
+    "type": {
+      "type": "string",
+      "enum": ["outdoor", "indoor"],
+      "default": "outdoor",
+      "description": "Spot type: outdoor crag or indoor gym"
+    },
     "lat": {
       "type": "number",
       "minimum": -90,

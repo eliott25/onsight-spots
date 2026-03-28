@@ -42,11 +42,12 @@ def spot_exists_nearby(cursor, name: str, lat: float, lon: float) -> bool:
 def insert_spot(cursor, spot: dict):
     cursor.execute(
         """
-        INSERT INTO spots (name, location, climbing_type, photo_url, source)
-        VALUES (%s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, 'community')
+        INSERT INTO spots (name, type, location, climbing_type, photo_url, source)
+        VALUES (%s, %s, ST_SetSRID(ST_MakePoint(%s, %s), 4326), %s, %s, 'community')
         """,
         (
             spot["name"],
+            spot.get("type", "outdoor"),
             spot["lon"],
             spot["lat"],
             spot["climbing_type"],
