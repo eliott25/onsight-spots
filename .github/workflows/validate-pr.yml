@@ -28,8 +28,12 @@ jobs:
 
       - name: Validate spot files
         if: steps.changed.outputs.files != ''
-        run: python scripts/validate.py ${{ steps.changed.outputs.files }}
+        run: python scripts/validate.py $CHANGED_FILES
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
 
       - name: Check for duplicates
         if: steps.changed.outputs.files != ''
-        run: python scripts/check_duplicates.py ${{ steps.changed.outputs.files }}
+        run: python scripts/check_duplicates.py $CHANGED_FILES
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
