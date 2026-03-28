@@ -21,10 +21,8 @@ jobs:
       - name: Get changed files
         id: changed
         run: |
-          FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep '^spots/.*\.yaml$' || true)
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          FILES=$(gh pr diff ${{ github.event.pull_request.number }} --name-only | grep '^spots/.*\.yaml$' | tr '\n' ' ' || true)
+          echo "files=$FILES" >> $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
 
