@@ -1,0 +1,26 @@
+name: Rename Etxaurri to Etxauri
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "spots/etxauri.yaml"
+
+jobs:
+  rename:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install psycopg2-binary
+
+      - name: Rename spot in database
+        run: python scripts/rename_spot.py 'Etxaurri' 'Etxauri'
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
