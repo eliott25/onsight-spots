@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "spots/**/*.yaml"
+  workflow_dispatch:
 
 jobs:
   insert:
@@ -34,9 +35,15 @@ jobs:
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
 
-      - name: Insert into database
+      - name: Insert into database (changed files)
         if: steps.changed.outputs.files != ''
         run: python scripts/insert.py $CHANGED_FILES
         env:
           CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Insert into database (all spots — manual trigger backfill)
+        if: steps.changed.outputs.files == '' && github.event_name == 'workflow_dispatch'
+        run: python scripts/insert.py
+        env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
