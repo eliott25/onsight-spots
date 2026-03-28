@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -25,17 +25,18 @@ jobs:
       - name: Get changed spot files
         id: changed
         run: |
-          FILES=$(git diff --name-only --diff-filter=AM HEAD~1 HEAD -- 'spots/*.yaml' || true)
-          echo "files<<EOF" >> $GITHUB_OUTPUT
-          echo "$FILES" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          FILES=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD -- 'spots/*.yaml' | tr '\n' ' ' || true)
+          echo "files=$FILES" >> $GITHUB_OUTPUT
 
       - name: Validate before insert
         if: steps.changed.outputs.files != ''
-        run: python scripts/validate.py ${{ steps.changed.outputs.files }}
+        run: python scripts/validate.py $CHANGED_FILES
+        env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
 
       - name: Insert into database
         if: steps.changed.outputs.files != ''
-        run: python scripts/insert.py ${{ steps.changed.outputs.files }}
+        run: python scripts/insert.py $CHANGED_FILES
         env:
+          CHANGED_FILES: ${{ steps.changed.outputs.files }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
