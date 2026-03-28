@@ -23,27 +23,36 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml jsonschema psycopg2-binary
 
-      - name: Get changed spot files
+      - name: Get new spot files
         id: changed
         run: |
-          FILES=$(git diff --name-only --diff-filter=AM HEAD~1...HEAD -- 'spots/*.yaml' | tr '\n' ' ' || true)
-          echo "files=$FILES" >> $GITHUB_OUTPUT
+          NEW_FILES=$(git diff --name-only --diff-filter=A HEAD~1...HEAD -- 'spots/*.yaml' | tr '\n' ' ' || true)
+          MOD_FILES=$(git diff --name-only --diff-filter=M HEAD~1...HEAD -- 'spots/*.yaml' | tr '\n' ' ' || true)
+          echo "new_files=$NEW_FILES" >> $GITHUB_OUTPUT
+          echo "mod_files=$MOD_FILES" >> $GITHUB_OUTPUT
 
-      - name: Validate before insert
-        if: steps.changed.outputs.files != ''
-        run: python scripts/validate.py $CHANGED_FILES
+      - name: Validate new spots
+        if: steps.changed.outputs.new_files != ''
+        run: python scripts/validate.py $NEW_FILES
         env:
-          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          NEW_FILES: ${{ steps.changed.outputs.new_files }}
 
-      - name: Insert into database (changed files)
-        if: steps.changed.outputs.files != ''
-        run: python scripts/insert.py $CHANGED_FILES
+      - name: Insert new spots
+        if: steps.changed.outputs.new_files != ''
+        run: python scripts/insert.py $NEW_FILES
         env:
-          CHANGED_FILES: ${{ steps.changed.outputs.files }}
+          NEW_FILES: ${{ steps.changed.outputs.new_files }}
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Insert into database (all spots — manual trigger backfill)
-        if: steps.changed.outputs.files == '' && github.event_name == 'workflow_dispatch'
-        run: python scripts/insert.py
+      - name: Update modified spots
+        if: steps.changed.outputs.mod_files != ''
+        run: python scripts/update_locations.py $MOD_FILES
+        env:
+          MOD_FILES: ${{ steps.changed.outputs.mod_files }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Backfill all spots (manual trigger)
+        if: github.event_name == 'workflow_dispatch'
+        run: python scripts/insert.py && python scripts/update_locations.py
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
